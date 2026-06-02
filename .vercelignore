@@ -1,0 +1,4 @@
+*.py
+ne_110m_land.geojson
+.git
+node_modules
