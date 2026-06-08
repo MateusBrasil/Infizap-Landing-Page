@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Bem-vindo ao INFIZAP — Acesso liberado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06080d;
+  --bg-2:#0a0d14;
+  --card:#0E1118;
+  --border:rgba(255,255,255,.08);
+  --text:#fff;
+  --muted:rgba(255,255,255,.6);
+  --muted-2:rgba(255,255,255,.4);
+  --primary:hsl(173,76%,48%);
+  --primary-2:hsl(173,76%,38%);
+  --shadow:0 24px 80px -32px rgba(31,217,192,.35);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(80% 60% at 50% 0%, hsl(173 76% 48% / .08) 0%, transparent 60%),
+    radial-gradient(60% 50% at 50% 100%, hsl(173 76% 48% / .04) 0%, transparent 70%),
+    var(--bg);
+  position:relative;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:24px 24px;
+  pointer-events:none;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+  z-index:0;
+}
+.container{max-width:920px;margin:0 auto;padding:48px 24px 80px;position:relative;z-index:1}
+.header{display:flex;align-items:center;justify-content:center;margin-bottom:48px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.02em}
+.logo-mark{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 30% 30%,hsl(173,76%,58%),hsl(173,76%,38%));box-shadow:0 0 24px hsl(173,76%,48%,.6)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid hsl(173,76%,48%,.3);border-radius:999px;background:hsl(173,76%,48%,.05);color:var(--primary);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 0 hsl(173,76%,48%,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 hsl(173,76%,48%,.7)}70%{box-shadow:0 0 0 8px hsl(173,76%,48%,0)}100%{box-shadow:0 0 0 0 hsl(173,76%,48%,0)}}
+h1{font-size:clamp(28px,5vw,48px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;text-align:center}
+h1 .accent{background:linear-gradient(135deg,hsl(173,76%,55%),hsl(173,76%,38%));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{max-width:640px;margin:0 auto 40px;text-align:center;color:var(--muted);font-size:clamp(15px,2vw,17px);line-height:1.55}
+.sub strong{color:#fff;font-weight:600}
+.video-wrap{position:relative;max-width:760px;margin:0 auto 12px;border-radius:24px;overflow:hidden;background:#000;aspect-ratio:16/9;border:1px solid var(--border);box-shadow:var(--shadow)}
+.video-wrap video{width:100%;height:100%;display:block;object-fit:cover}
+.video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0d14,#0E1118);text-align:center;padding:20px;cursor:pointer;transition:opacity .3s ease}
+.video-placeholder.hidden{opacity:0;pointer-events:none}
+.video-placeholder .play{width:84px;height:84px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 0 0 12px hsl(173,76%,48%,.15),0 0 40px hsl(173,76%,48%,.5);transition:transform .2s ease}
+.video-placeholder:hover .play{transform:scale(1.05)}
+.video-placeholder .play svg{width:32px;height:32px;color:#0A0D14;margin-left:4px}
+.video-placeholder .title{font-weight:700;font-size:18px;margin-bottom:6px}
+.video-placeholder .sub-line{color:var(--muted);font-size:13px}
+.video-caption{text-align:center;color:var(--muted-2);font-size:13px;margin-bottom:36px}
+.cta-wrap{display:flex;justify-content:center;margin:0 auto 56px}
+.cta{position:relative;display:inline-flex;align-items:center;gap:10px;padding:18px 36px;border-radius:999px;background:var(--primary);color:#0A0D14;font-size:17px;font-weight:700;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 12px 40px -8px hsl(173,76%,48%,.5)}
+.cta:hover{transform:translateY(-2px);box-shadow:0 18px 50px -8px hsl(173,76%,48%,.65)}
+.cta::before{content:'';position:absolute;inset:-2px;border-radius:999px;background:linear-gradient(135deg,hsl(173,76%,58%),hsl(173,76%,38%));z-index:-1;opacity:0;transition:opacity .3s}
+.cta:hover::before{opacity:1}
+.cta svg{transition:transform .2s}
+.cta:hover svg{transform:translateX(3px)}
+.cta-pulse{position:relative}
+.cta-pulse::after{content:'';position:absolute;inset:0;border-radius:999px;border:2px solid var(--primary);opacity:.5;animation:cta-pulse 2.5s ease-out infinite;pointer-events:none}
+@keyframes cta-pulse{0%{transform:scale(1);opacity:.5}80%{transform:scale(1.18);opacity:0}100%{transform:scale(1.18);opacity:0}}
+.cards{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:48px}
+@media(min-width:720px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:hsl(173,76%,48%,.3);transform:translateY(-2px)}
+.card-icon{width:42px;height:42px;border-radius:12px;background:hsl(173,76%,48%,.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card-icon svg{width:22px;height:22px;color:var(--primary)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14px;line-height:1.5}
+.card p strong{color:#fff;font-weight:600}
+.email-strip{background:linear-gradient(135deg,hsl(173,76%,48%,.06),hsl(173,76%,48%,.02));border:1px solid hsl(173,76%,48%,.18);border-radius:16px;padding:18px 22px;display:flex;align-items:center;gap:14px;text-align:left;color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:48px}
+.email-strip svg{flex-shrink:0;width:24px;height:24px;color:var(--primary)}
+.email-strip strong{color:#fff;font-weight:600}
+.email-strip .email-value{color:var(--primary);font-weight:600}
+footer{text-align:center;color:var(--muted-2);font-size:12px;padding-top:32px;border-top:1px solid var(--border)}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--primary)}
+.confetti{position:fixed;width:8px;height:8px;top:-10px;border-radius:2px;animation:confetti-fall 4s linear forwards;pointer-events:none;z-index:50}
+@keyframes confetti-fall{
+  0%{transform:translateY(0) rotate(0);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+@media(max-width:600px){
+  .container{padding:32px 16px 60px}
+  .header{margin-bottom:32px}
+  .video-placeholder .play{width:64px;height:64px}
+  .video-placeholder .play svg{width:24px;height:24px}
+  .cta{padding:16px 28px;font-size:15px}
+  .email-strip{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span>INFIZAP</span>
+    </div>
+  </header>
+
+  <main style="text-align:center">
+
+    <div class="eyebrow">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      <span>Parabéns · Acesso liberado</span>
+    </div>
+
+    <h1>
+      Você acabou de fazer<br>
+      uma das <span class="accent">decisões mais inteligentes</span><br>
+      do seu trimestre.
+    </h1>
+
+    <p class="sub">
+      Em <strong>12 meses</strong>, seus concorrentes vão estar onde você está agora —
+      tentando entender por que estão ficando para trás. E você vai estar
+      <strong>12 meses na frente deles.</strong>
+    </p>
+
+    <div class="video-wrap">
+      <video id="thank-you-video" controls preload="metadata" playsinline>
+        <source src="" type="video/mp4">
+        <!-- TODO: substituir src pelo arquivo .mp4 do vídeo do dono -->
+      </video>
+      <div class="video-placeholder" id="video-placeholder">
+        <div class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+        <div class="title">Mensagem do fundador — 3 min</div>
+        <div class="sub-line">Assista antes de qualquer coisa.</div>
+      </div>
+    </div>
+    <p class="video-caption">↑ É o atalho mais rápido pros primeiros R$ 10 mil em vendas dentro da plataforma.</p>
+
+    <div class="cta-wrap">
+      <a href="#" id="access-platform-btn" class="cta cta-pulse" data-pending="true">
+        <span>Acessar minha plataforma</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        </div>
+        <h3>Confira seu e-mail</h3>
+        <p>Em até <strong>2 minutos</strong> o seu login + senha chegam no e-mail. Vai ter <strong>dois acessos</strong>: a plataforma e a área de membros (cursos).</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <h3>Comece pela aula 1</h3>
+        <p>Configura seu primeiro fluxo na <strong>primeira aula</strong>. Não pula etapas — cada uma economiza horas de tropeço depois.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <h3>Suporte 24/7</h3>
+        <p>Qualquer dúvida, qualquer hora. <strong>Resposta humana</strong> no WhatsApp, sem chatbot infinito.</p>
+      </div>
+    </div>
+
+    <div class="email-strip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <div>
+        Seu acesso completo chega em até 2 minutos no e-mail <span class="email-value" id="user-email">cadastrado</span>.
+        <strong>Não recebeu?</strong> Olha o spam — ou chama a gente no suporte.
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2026 INFIZAP. Todos os direitos reservados.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  // ───────────────────────────────────────────────────────────────
+  // TODO: Substituir pelos links reais que vão ser enviados:
+  // 1. PLATFORM_URL = a URL principal do INFIZAP (onde o usuário faz login)
+  // ───────────────────────────────────────────────────────────────
+  var PLATFORM_URL = 'https://infizap.com'; // <-- TROCAR pelo URL real do dashboard
+
+  // Personalize with stored data from the LP modal submission
+  try {
+    var raw = sessionStorage.getItem('infizap_lead');
+    if (raw) {
+      var lead = JSON.parse(raw);
+      if (lead.email) {
+        var el = document.getElementById('user-email');
+        if (el) el.textContent = lead.email;
+      }
+    }
+  } catch(e){}
+
+  // Wire CTA button
+  var btn = document.getElementById('access-platform-btn');
+  if (btn) {
+    btn.href = PLATFORM_URL;
+    btn.removeAttribute('data-pending');
+    btn.target = '_self';
+  }
+
+  // Video placeholder click → start playback
+  var placeholder = document.getElementById('video-placeholder');
+  var video = document.getElementById('thank-you-video');
+  if (placeholder && video) {
+    placeholder.addEventListener('click', function(){
+      if (!video.querySelector('source').src) {
+        // No video file yet — animate the placeholder to acknowledge click
+        placeholder.style.transition = 'transform .15s ease';
+        placeholder.style.transform = 'scale(.98)';
+        setTimeout(function(){ placeholder.style.transform = 'scale(1)'; }, 150);
+        return;
+      }
+      placeholder.classList.add('hidden');
+      try { video.play(); } catch(e){}
+    });
+
+    // When video ends, scroll to CTA and pulse it
+    video.addEventListener('ended', function(){
+      btn && btn.scrollIntoView({behavior:'smooth', block:'center'});
+      btn && btn.classList.add('cta-pulse');
+    });
+  }
+
+  // Confetti burst on load
+  function confetti(){
+    var colors = ['#1FD9C0', '#3DDDF3', '#fff', '#1FD9C0', '#1FD9C0'];
+    for (var i = 0; i < 40; i++) {
+      var el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.animationDelay = (Math.random() * 1.5) + 's';
+      el.style.animationDuration = (3 + Math.random() * 2) + 's';
+      el.style.opacity = (0.6 + Math.random() * 0.4);
+      document.body.appendChild(el);
+      setTimeout(function(node){return function(){node.remove()};}(el), 6000);
+    }
+  }
+  if (!sessionStorage.getItem('infizap_confetti_shown')) {
+    confetti();
+    sessionStorage.setItem('infizap_confetti_shown', '1');
+  }
+})();
+</script>
+</body>
+</html>
