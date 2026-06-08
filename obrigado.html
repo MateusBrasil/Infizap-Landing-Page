@@ -208,23 +208,34 @@ footer a:hover{color:var(--primary)}
   // ───────────────────────────────────────────────────────────────
   (function gate(){
     try {
+      // Signal 1: Stripe set ?session_id=… on success_url (best signal)
       var params = new URLSearchParams(window.location.search);
       var sessionId = params.get('session_id');
+
+      // Signal 2: lead submitted within a reasonable window (covers same-tab Stripe round-trip).
+      // 2h window absorbs slow typing + slow card networks; tab session was a real LP visit.
       var hasRecentLead = false;
       try {
-        var rawLead = sessionStorage.getItem('infizap_lead');
+        var rawLead = sessionStorage.getItem('infizap_lead') || localStorage.getItem('infizap_lead');
         if (rawLead) {
           var L = JSON.parse(rawLead);
-          // Treat lead as "recent" only if submitted within the last 30 minutes
-          // (covers the Stripe round-trip but not random later visits)
           if (L && L.submitted_at) {
             var age = Date.now() - new Date(L.submitted_at).getTime();
-            if (age >= 0 && age < 30 * 60 * 1000) hasRecentLead = true;
+            if (age >= 0 && age < 2 * 60 * 60 * 1000) hasRecentLead = true;
           }
         }
       } catch(_){}
-      if (!sessionId && !hasRecentLead) {
-        // Direct visit without proof of payment — send back to LP pricing
+
+      // Signal 3: arrived from a Stripe-owned domain via redirect
+      var fromStripe = false;
+      try {
+        var ref = document.referrer || '';
+        if (/^https?:\/\/(?:checkout\.|buy\.|pay\.)?stripe\.com\//i.test(ref)) fromStripe = true;
+      } catch(_){}
+
+      if (!sessionId && !hasRecentLead && !fromStripe) {
+        // No proof of either a paid Stripe session OR an active LP funnel —
+        // send back to pricing instead of rendering the thank-you UI.
         window.location.replace('https://infizap-landing-page.vercel.app/#pricing');
         return;
       }
