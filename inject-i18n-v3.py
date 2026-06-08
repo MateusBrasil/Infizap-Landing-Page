@@ -6,13 +6,17 @@ sys.stdout.reconfigure(encoding='utf-8')
 # Load dictionaries
 en = json.loads(Path('i18n/en.json').read_text(encoding='utf-8'))
 es = json.loads(Path('i18n/es.json').read_text(encoding='utf-8'))
+ar = json.loads(Path('i18n/ar.json').read_text(encoding='utf-8'))
 en.pop('_meta', None)
 es.pop('_meta', None)
+ar.pop('_meta', None)
 print(f'EN entries: {len(en)}')
 print(f'ES entries: {len(es)}')
+print(f'AR entries: {len(ar)}')
 
 EN_JSON = json.dumps(en, ensure_ascii=False)
 ES_JSON = json.dumps(es, ensure_ascii=False)
+AR_JSON = json.dumps(ar, ensure_ascii=False)
 
 # Remove old i18n script
 p = Path('infizap-lp-v1.html')
@@ -31,25 +35,37 @@ else:
 
 # Build new script with dicts embedded
 SCRIPT_BODY = """
+<style>
+html[dir="rtl"] { direction: rtl; text-align: right; }
+html[dir="rtl"] body { font-family: 'Segoe UI', Tahoma, 'Geeza Pro', 'Arabic UI Display', system-ui, -apple-system, sans-serif; }
+html[dir="rtl"] .text-left { text-align: right !important; }
+html[dir="rtl"] .text-right { text-align: left !important; }
+html[dir="rtl"] [class*="ml-"]:not([class*="mr-"]) { margin-left: 0 !important; }
+html[dir="rtl"] #lang-switcher-menu { right: auto !important; left: 0 !important; }
+</style>
 <script>
 (function(){
   "use strict";
   var EN = __EN_JSON__;
   var ES = __ES_JSON__;
-  var DICTS = { "en": EN, "es": ES };
+  var AR = __AR_JSON__;
+  var DICTS = { "en": EN, "es": ES, "ar": AR };
 
   var SUPPORTED = {
-    "pt-BR": { name:"PT", flag:"br", html_lang:"pt-BR" },
-    "en":    { name:"EN", flag:"us", html_lang:"en"    },
-    "es":    { name:"ES", flag:"es", html_lang:"es"    }
+    "pt-BR": { name:"PT", flag:"br", html_lang:"pt-BR", dir:"ltr" },
+    "en":    { name:"EN", flag:"us", html_lang:"en",    dir:"ltr" },
+    "es":    { name:"ES", flag:"es", html_lang:"es",    dir:"ltr" },
+    "ar":    { name:"AR", flag:"sa", html_lang:"ar",    dir:"rtl" }
   };
   var COUNTRY_TO_LANG = {
     "BR":"pt-BR","PT":"pt-BR",
     "ES":"es","MX":"es","AR":"es","CL":"es","PE":"es","CO":"es","EC":"es",
     "VE":"es","UY":"es","PY":"es","BO":"es","CU":"es","DO":"es","GT":"es",
     "HN":"es","SV":"es","NI":"es","CR":"es","PA":"es",
+    "SA":"ar","AE":"ar","EG":"ar","JO":"ar","KW":"ar","QA":"ar","BH":"ar",
+    "OM":"ar","MA":"ar","TN":"ar","DZ":"ar","LB":"ar","IQ":"ar","SD":"ar","YE":"ar","LY":"ar","SY":"ar","PS":"ar",
     "US":"en","GB":"en","CA":"en","AU":"en","NZ":"en","IE":"en","ZA":"en",
-    "NL":"en","CH":"en","DE":"en","FR":"en","IT":"en","SA":"en","AE":"en",
+    "NL":"en","CH":"en","DE":"en","FR":"en","IT":"en",
     "IN":"en","SG":"en","PH":"en","MY":"en","JP":"en","KR":"en","CN":"en"
   };
 
@@ -191,6 +207,7 @@ SCRIPT_BODY = """
   function go(lang){
     window.__INFIZAP_I18N.lang = lang;
     try { document.documentElement.lang = (SUPPORTED[lang] && SUPPORTED[lang].html_lang) || lang; } catch(_){}
+    try { document.documentElement.dir = (SUPPORTED[lang] && SUPPORTED[lang].dir) || "ltr"; } catch(_){}
     buildSwitcher(lang);
     if (lang === "pt-BR") { window.__INFIZAP_I18N.stage = "pt-default"; return; }
     var dict = DICTS[lang];
@@ -279,7 +296,7 @@ SCRIPT_BODY = """
 </script>
 """
 
-SCRIPT = SCRIPT_BODY.replace('__EN_JSON__', EN_JSON).replace('__ES_JSON__', ES_JSON)
+SCRIPT = SCRIPT_BODY.replace('__EN_JSON__', EN_JSON).replace('__ES_JSON__', ES_JSON).replace('__AR_JSON__', AR_JSON)
 
 body_end = c.rfind('</body>')
 c = c[:body_end] + SCRIPT + c[body_end:]
