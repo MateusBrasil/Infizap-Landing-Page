@@ -43,8 +43,8 @@ body::before{
 }
 .container{max-width:920px;margin:0 auto;padding:48px 24px 80px;position:relative;z-index:1}
 .header{display:flex;align-items:center;justify-content:center;margin-bottom:48px}
-.logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.02em}
-.logo-mark{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 30% 30%,hsl(173,76%,58%),hsl(173,76%,38%));box-shadow:0 0 24px hsl(173,76%,48%,.6)}
+.logo{display:inline-flex;align-items:center;text-decoration:none;color:inherit}
+.logo img{height:36px;width:auto;display:block;filter:drop-shadow(0 0 12px hsl(173,76%,48%,.25))}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid hsl(173,76%,48%,.3);border-radius:999px;background:hsl(173,76%,48%,.05);color:var(--primary);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
 .eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 0 hsl(173,76%,48%,.7);animation:pulse 2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 hsl(173,76%,48%,.7)}70%{box-shadow:0 0 0 8px hsl(173,76%,48%,0)}100%{box-shadow:0 0 0 0 hsl(173,76%,48%,0)}}
@@ -107,10 +107,9 @@ footer a:hover{color:var(--primary)}
 <div class="container">
 
   <header class="header">
-    <div class="logo">
-      <span class="logo-mark" aria-hidden="true"></span>
-      <span>INFIZAP</span>
-    </div>
+    <a href="/" class="logo" aria-label="INFIZAP">
+      <img src="/logo-infizap.png" alt="INFIZAP" width="160" height="36">
+    </a>
   </header>
 
   <main style="text-align:center">
