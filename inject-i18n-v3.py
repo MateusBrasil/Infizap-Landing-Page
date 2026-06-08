@@ -147,6 +147,47 @@ SCRIPT_BODY = """
     if (!(e.target.closest && e.target.closest("#lang-switcher"))){ var m2=document.getElementById("lang-switcher-menu"); if (m2) m2.style.display="none"; }
   }, true);
 
+  function applySubtree(dict, root){
+    if (!dict || !root) return 0;
+    var replaced = 0;
+    var stack = [root];
+    while (stack.length){
+      var el = stack.pop();
+      if (!el) continue;
+      var tag = el.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") continue;
+      // child elements
+      if (el.children) for (var i = 0; i < el.children.length; i++) stack.push(el.children[i]);
+      // text nodes
+      var ch = el.childNodes;
+      for (var j = 0; j < ch.length; j++) {
+        var node = ch[j];
+        if (node.nodeType !== 3) continue;
+        var raw = node.nodeValue;
+        if (!raw) continue;
+        var trimmed = raw.trim();
+        if (!trimmed) continue;
+        if (dict.hasOwnProperty(trimmed)) {
+          var t = dict[trimmed];
+          if (t && t !== trimmed) { node.nodeValue = raw.replace(trimmed, t); replaced++; }
+        }
+      }
+      // attrs
+      var attrs = ["placeholder","aria-label","title","alt"];
+      for (var k = 0; k < attrs.length; k++){
+        var a = attrs[k];
+        if (el.hasAttribute && el.hasAttribute(a)){
+          var v = (el.getAttribute(a) || "").trim();
+          if (v && dict.hasOwnProperty(v)){
+            var tt = dict[v];
+            if (tt && tt !== v) { el.setAttribute(a, tt); replaced++; }
+          }
+        }
+      }
+    }
+    return replaced;
+  }
+
   function go(lang){
     window.__INFIZAP_I18N.lang = lang;
     try { document.documentElement.lang = (SUPPORTED[lang] && SUPPORTED[lang].html_lang) || lang; } catch(_){}
@@ -155,6 +196,7 @@ SCRIPT_BODY = """
     var dict = DICTS[lang];
     if (!dict) { window.__INFIZAP_I18N.stage = "no-dict"; return; }
     window.__INFIZAP_I18N.dictKeys = Object.keys(dict).length;
+    window.__INFIZAP_I18N_DICT = dict;
     var pass1 = applyTranslations(dict);
     window.__INFIZAP_I18N.pass1 = pass1;
     var passes = [];
@@ -163,8 +205,62 @@ SCRIPT_BODY = """
       ticks++;
       var n = applyTranslations(dict);
       passes.push(n);
-      if (ticks >= 20) { clearInterval(ticker); window.__INFIZAP_I18N.passes = passes; window.__INFIZAP_I18N.stage = "applied"; }
+      if (ticks >= 30) { clearInterval(ticker); window.__INFIZAP_I18N.passes = passes; window.__INFIZAP_I18N.stage = "applied"; }
     }, 200);
+    // MutationObserver to catch dynamic content (chat bubbles, modals, carousel clones)
+    try {
+      var pending = false;
+      var mo = new MutationObserver(function(muts){
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(function(){
+          pending = false;
+          for (var m = 0; m < muts.length; m++){
+            var mut = muts[m];
+            if (mut.type === "childList"){
+              for (var n = 0; n < mut.addedNodes.length; n++){
+                var node = mut.addedNodes[n];
+                if (node.nodeType === 1) applySubtree(dict, node);
+                else if (node.nodeType === 3 && node.nodeValue){
+                  var t = node.nodeValue.trim();
+                  if (t && dict.hasOwnProperty(t)){
+                    var tr = dict[t];
+                    if (tr && tr !== t) node.nodeValue = node.nodeValue.replace(t, tr);
+                  }
+                }
+              }
+            } else if (mut.type === "characterData"){
+              var nd = mut.target;
+              if (nd && nd.nodeType === 3 && nd.nodeValue){
+                var tt = nd.nodeValue.trim();
+                if (tt && dict.hasOwnProperty(tt)){
+                  var trr = dict[tt];
+                  if (trr && trr !== tt) nd.nodeValue = nd.nodeValue.replace(tt, trr);
+                }
+              }
+            } else if (mut.type === "attributes"){
+              var el = mut.target;
+              var a = mut.attributeName;
+              if (el && el.getAttribute && (a === "placeholder" || a === "aria-label" || a === "title" || a === "alt")){
+                var v = (el.getAttribute(a) || "").trim();
+                if (v && dict.hasOwnProperty(v)){
+                  var tt2 = dict[v];
+                  if (tt2 && tt2 !== v) el.setAttribute(a, tt2);
+                }
+              }
+            }
+          }
+        });
+      });
+      mo.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ["placeholder","aria-label","title","alt"]
+      });
+      window.__INFIZAP_I18N.observer = "active";
+    } catch(e){ window.__INFIZAP_I18N.observer = "failed:" + e.message; }
   }
 
   function init(){
