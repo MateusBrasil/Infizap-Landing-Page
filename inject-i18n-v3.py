@@ -17,13 +17,17 @@ ES_JSON = json.dumps(es, ensure_ascii=False)
 # Remove old i18n script
 p = Path('infizap-lp-v1.html')
 c = p.read_text(encoding='utf-8')
+# Try v1/v2 marker first
 start = c.find("\n<script>\n(function(){\n  'use strict';\n\n  var SUPPORTED = {")
+# Else try v3 marker
 if start < 0:
-    print('ERROR: old script marker not found')
-    sys.exit(1)
-end = c.find('</script>', start) + len('</script>')
-c = c[:start+1] + c[end:]
-print(f'old script removed, current size: {len(c)}')
+    start = c.find('\n<script>\n(function(){\n  "use strict";\n  var EN = ')
+if start < 0:
+    print('NOTE: no previous i18n script found — first injection')
+else:
+    end = c.find('</script>', start) + len('</script>')
+    c = c[:start+1] + c[end:]
+    print(f'old script removed, current size: {len(c)}')
 
 # Build new script with dicts embedded
 SCRIPT_BODY = """
