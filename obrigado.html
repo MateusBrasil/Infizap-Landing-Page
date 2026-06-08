@@ -201,6 +201,37 @@ footer a:hover{color:var(--primary)}
 <script>
 (function(){
   // ───────────────────────────────────────────────────────────────
+  // Gate: this page is only meant to load AFTER a Stripe payment.
+  // Stripe will redirect here with ?session_id={CHECKOUT_SESSION_ID}.
+  // If we don't see a session_id (nor a recent lead in storage), bounce
+  // the visitor back to the LP — they did not actually pay.
+  // ───────────────────────────────────────────────────────────────
+  (function gate(){
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var sessionId = params.get('session_id');
+      var hasRecentLead = false;
+      try {
+        var rawLead = sessionStorage.getItem('infizap_lead');
+        if (rawLead) {
+          var L = JSON.parse(rawLead);
+          // Treat lead as "recent" only if submitted within the last 30 minutes
+          // (covers the Stripe round-trip but not random later visits)
+          if (L && L.submitted_at) {
+            var age = Date.now() - new Date(L.submitted_at).getTime();
+            if (age >= 0 && age < 30 * 60 * 1000) hasRecentLead = true;
+          }
+        }
+      } catch(_){}
+      if (!sessionId && !hasRecentLead) {
+        // Direct visit without proof of payment — send back to LP pricing
+        window.location.replace('https://infizap-landing-page.vercel.app/#pricing');
+        return;
+      }
+    } catch(_){}
+  })();
+
+  // ───────────────────────────────────────────────────────────────
   // TODO: Substituir pelos links reais que vão ser enviados:
   // 1. PLATFORM_URL = a URL principal do INFIZAP (onde o usuário faz login)
   // ───────────────────────────────────────────────────────────────
