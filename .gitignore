@@ -6,3 +6,8 @@ node_modules/
 .vscode/
 .compare/
 .vercel
+
+# Segredos — nunca commitar
+.env
+.env.local
+.env.*.local
