@@ -56,8 +56,16 @@ const PLAN_BY_PRICE = {
   // "price_xxx": { label: "Start Mensal", planId: 0, recurrence: "MENSAL" },
 };
 
-function resolvePlan(session, priceId) {
-  if (priceId && PLAN_BY_PRICE[priceId]) return PLAN_BY_PRICE[priceId];
+function resolvePlan(session, li) {
+  li = li || {};
+  // 1) por Price ID (mais preciso) se voce preencheu PLAN_BY_PRICE
+  if (li.priceId && PLAN_BY_PRICE[li.priceId]) return PLAN_BY_PRICE[li.priceId];
+  // 2) pelo preco unitario do plano (nao muda com imposto nem desconto)
+  if (li.unitAmount != null) {
+    const k = `${(li.unitCurrency || session.currency || "").toLowerCase()}:${li.unitAmount}`;
+    if (PLAN_BY_AMOUNT[k]) return PLAN_BY_AMOUNT[k];
+  }
+  // 3) fallback: total pago (so funciona sem imposto/desconto)
   const key = `${(session.currency || "").toLowerCase()}:${session.amount_total}`;
   return PLAN_BY_AMOUNT[key] || null;
 }
@@ -115,20 +123,25 @@ async function provisionFromSession(session) {
 
   if (!email) throw new Error("Sessao sem email do cliente");
 
-  // 2) Qual plano foi comprado? Resolve por valor pago (e price ID se houver).
-  let priceId = null;
+  // 2) Qual plano foi comprado? Resolve pelo PRECO DO PLANO na linha do pedido
+  //    (unit_amount / price.id) — estavel mesmo com imposto (VAT) ou desconto.
+  //    Cai pro amount_total so se nao conseguir as line items.
+  let li = {};
   try {
     const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
       limit: 1,
     });
-    priceId =
-      (lineItems.data[0] && lineItems.data[0].price && lineItems.data[0].price.id) ||
-      null;
+    const item = lineItems.data[0];
+    if (item && item.price) {
+      li.priceId = item.price.id || null;
+      li.unitAmount = item.price.unit_amount != null ? item.price.unit_amount : null;
+      li.unitCurrency = item.price.currency || null;
+    }
   } catch (_) {
-    // segue so com o valor pago
+    // segue so com o valor pago (amount_total)
   }
 
-  const mapped = resolvePlan(session, priceId);
+  const mapped = resolvePlan(session, li);
   if (!mapped) {
     throw new Error(
       `Plano nao reconhecido. currency=${session.currency} amount_total=${session.amount_total} priceId=${priceId}`

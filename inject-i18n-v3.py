@@ -55,7 +55,7 @@ html[dir="rtl"] #lang-switcher-menu { right: auto !important; left: 0 !important
     "pt-BR": { name:"PT", flag:"br", html_lang:"pt-BR", dir:"ltr" },
     "en":    { name:"EN", flag:"us", html_lang:"en",    dir:"ltr" },
     "es":    { name:"ES", flag:"es", html_lang:"es",    dir:"ltr" },
-    "ar":    { name:"AR", flag:"sa", html_lang:"ar",    dir:"rtl" }
+    "ar":    { name:"AR", flag:"ae", html_lang:"ar",    dir:"rtl" }
   };
   var COUNTRY_TO_LANG = {
     "BR":"pt-BR","PT":"pt-BR",
