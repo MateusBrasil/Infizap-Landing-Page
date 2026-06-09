@@ -182,24 +182,87 @@ async function provisionFromSession(session) {
     `[infizap] empresa criada: id=${company.id} email=${email} planId=${mapped.planId} ref=${session.client_reference_id || "-"}`
   );
 
-  // 7) Email de boas-vindas com as credenciais.
+  // 7) Email de boas-vindas com as credenciais, no IDIOMA da compra.
+  //    O idioma vem carimbado no client_reference_id pela landing (__l_pt/en/es/ar).
   //    NUNCA derruba a criacao da empresa: se o email falhar, so logamos.
+  const lang = parseLang(session.client_reference_id);
   try {
-    await sendWelcomeEmail({ email, name, password, planLabel: mapped.label });
-    console.log(`[infizap] email de boas-vindas enviado para ${email}`);
+    await sendWelcomeEmail({ email, name, password, planLabel: mapped.label, lang });
+    console.log(`[infizap] email de boas-vindas (${lang}) enviado para ${email}`);
   } catch (e) {
     console.error("[infizap] falha ao enviar email de boas-vindas:", e && e.message);
   }
 }
 
 // ───────────────────────── EMAIL DE BOAS-VINDAS ─────────────────────────
-// Envia via SMTP (ex.: caixa do Hostinger no-reply@infizap.com).
+// Envia via SMTP (ex.: caixa do Hostinger no-reply@infizap.com), no idioma
+// da compra (pt/en/es/ar). Arabe (ar) e renderizado da direita pra esquerda.
 // Variaveis na Vercel: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM,
 // e opcional APP_LOGIN_URL (default https://app.infizap.com/login).
-async function sendWelcomeEmail({ email, name, password, planLabel }) {
+
+// Textos do email por idioma (pt = padrao).
+const EMAIL_T = {
+  pt: {
+    subject: "Bem-vindo ao INFIZAP — seu acesso está pronto 🎉",
+    hi: "Olá",
+    intro: (p) => `Seu pagamento do <strong>${p}</strong> foi aprovado e sua conta já está pronta. Use os dados abaixo para entrar:`,
+    access: "Acesso", emailLabel: "Email", tempPass: "Senha temporária",
+    security: 'Por segurança, <strong>troque a senha no primeiro acesso</strong> (no menu do seu perfil dentro da plataforma). Se esquecer a senha, use a opção "Esqueci minha senha" na tela de login.',
+    button: "Entrar na plataforma",
+    help: "Precisa de ajuda? Responda este email.", team: "— Equipe INFIZAP",
+    textIntro: (p) => `Seu pagamento do ${p} foi aprovado e sua conta está pronta.`,
+    textSecurity: 'Troque a senha no primeiro acesso. Se esquecer, use "Esqueci minha senha" no login.',
+  },
+  en: {
+    subject: "Welcome to INFIZAP — your access is ready 🎉",
+    hi: "Hi",
+    intro: (p) => `Your payment for <strong>${p}</strong> was approved and your account is ready. Use the details below to log in:`,
+    access: "Login URL", emailLabel: "Email", tempPass: "Temporary password",
+    security: 'For security, <strong>change your password on first login</strong> (in your profile menu inside the platform). If you forget it, use the "Forgot password" option on the login screen.',
+    button: "Log in to the platform",
+    help: "Need help? Just reply to this email.", team: "— The INFIZAP Team",
+    textIntro: (p) => `Your payment for ${p} was approved and your account is ready.`,
+    textSecurity: 'Change your password on first login. If you forget it, use "Forgot password" on the login screen.',
+  },
+  es: {
+    subject: "Bienvenido a INFIZAP — tu acceso está listo 🎉",
+    hi: "Hola",
+    intro: (p) => `Tu pago del <strong>${p}</strong> fue aprobado y tu cuenta ya está lista. Usa los datos de abajo para entrar:`,
+    access: "Acceso", emailLabel: "Email", tempPass: "Contraseña temporal",
+    security: 'Por seguridad, <strong>cambia la contraseña en el primer acceso</strong> (en el menú de tu perfil dentro de la plataforma). Si la olvidas, usa la opción "Olvidé mi contraseña" en la pantalla de inicio de sesión.',
+    button: "Entrar a la plataforma",
+    help: "¿Necesitas ayuda? Responde a este correo.", team: "— Equipo INFIZAP",
+    textIntro: (p) => `Tu pago del ${p} fue aprobado y tu cuenta está lista.`,
+    textSecurity: 'Cambia la contraseña en el primer acceso. Si la olvidas, usa "Olvidé mi contraseña" en el login.',
+  },
+  ar: {
+    subject: "مرحبًا بك في INFIZAP — حسابك جاهز 🎉",
+    hi: "مرحبًا",
+    intro: (p) => `تمت الموافقة على دفعتك لـ <strong>${p}</strong> وحسابك جاهز الآن. استخدم البيانات أدناه لتسجيل الدخول:`,
+    access: "رابط الدخول", emailLabel: "البريد الإلكتروني", tempPass: "كلمة مرور مؤقتة",
+    security: 'لأمانك، <strong>قم بتغيير كلمة المرور عند أول تسجيل دخول</strong> (من قائمة ملفك الشخصي داخل المنصة). إذا نسيتها، استخدم خيار "نسيت كلمة المرور" في شاشة تسجيل الدخول.',
+    button: "تسجيل الدخول إلى المنصة",
+    help: "هل تحتاج إلى مساعدة؟ فقط رد على هذا البريد.", team: "— فريق INFIZAP",
+    textIntro: (p) => `تمت الموافقة على دفعتك لـ ${p} وحسابك جاهز.`,
+    textSecurity: 'قم بتغيير كلمة المرور عند أول تسجيل دخول. إذا نسيتها، استخدم "نسيت كلمة المرور" في تسجيل الدخول.',
+  },
+};
+
+// Le o idioma carimbado no client_reference_id (ex.: anon_xxx__l_en) -> "en".
+// Se nao vier idioma, o padrao e INGLES (alcanca mais gente).
+function parseLang(ref) {
+  const m = /__l_(pt|en|es|ar)\b/.exec(ref || "");
+  return m ? m[1] : "en";
+}
+
+async function sendWelcomeEmail({ email, name, password, planLabel, lang }) {
   if (!process.env.SMTP_HOST) {
     throw new Error("SMTP nao configurado (defina SMTP_HOST/PORT/USER/PASS)");
   }
+  const t = EMAIL_T[lang] || EMAIL_T.en;
+  const dir = lang === "ar" ? "rtl" : "ltr";
+  const align = lang === "ar" ? "right" : "left";
+
   const port = Number(process.env.SMTP_PORT || 465);
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -210,49 +273,42 @@ async function sendWelcomeEmail({ email, name, password, planLabel }) {
 
   const loginUrl = process.env.APP_LOGIN_URL || "https://app.infizap.com/login";
   const from = process.env.MAIL_FROM || "INFIZAP <no-reply@infizap.com>";
-  const firstName = (name || "").split(" ")[0] || "Olá";
+  const firstName = (name || "").split(" ")[0] || t.hi;
 
+  const planSafe = escapeHtml(planLabel || "INFIZAP");
   const html = `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
+  <div dir="${dir}" style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a;text-align:${align}">
     <div style="background:#0f766e;padding:24px;border-radius:12px 12px 0 0;text-align:center">
       <span style="color:#fff;font-size:22px;font-weight:700;letter-spacing:1px">INFIZAP</span>
     </div>
     <div style="border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px;padding:28px">
-      <p style="font-size:16px">Olá, ${escapeHtml(firstName)} 👋</p>
-      <p style="font-size:15px;line-height:1.6">
-        Seu pagamento do <strong>${escapeHtml(planLabel || "plano INFIZAP")}</strong> foi
-        aprovado e sua conta já está pronta. Use os dados abaixo pra entrar:
-      </p>
+      <p style="font-size:16px">${t.hi}, ${escapeHtml(firstName)} 👋</p>
+      <p style="font-size:15px;line-height:1.6">${t.intro(planSafe)}</p>
       <div style="background:#f1f5f9;border-radius:10px;padding:18px;margin:18px 0;font-size:15px">
-        <div style="margin-bottom:8px"><strong>Acesso:</strong>
+        <div style="margin-bottom:8px"><strong>${t.access}:</strong>
           <a href="${loginUrl}" style="color:#0f766e">${loginUrl}</a></div>
-        <div style="margin-bottom:8px"><strong>Email:</strong> ${escapeHtml(email)}</div>
-        <div><strong>Senha temporária:</strong>
+        <div style="margin-bottom:8px"><strong>${t.emailLabel}:</strong> ${escapeHtml(email)}</div>
+        <div><strong>${t.tempPass}:</strong>
           <code style="background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #cbd5e1">${escapeHtml(password)}</code></div>
       </div>
-      <p style="font-size:14px;line-height:1.6;color:#475569">
-        Por segurança, <strong>troque a senha no primeiro acesso</strong> (menu do seu
-        perfil dentro da plataforma). Se esquecer a senha, use a opção
-        "Esqueci minha senha" na tela de login.
-      </p>
+      <p style="font-size:14px;line-height:1.6;color:#475569">${t.security}</p>
       <div style="text-align:center;margin:24px 0">
-        <a href="${loginUrl}" style="background:#0f766e;color:#fff;text-decoration:none;
-           padding:12px 28px;border-radius:8px;font-weight:600;display:inline-block">Entrar na plataforma</a>
+        <a href="${loginUrl}" style="background:#0f766e;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;display:inline-block">${t.button}</a>
       </div>
-      <p style="font-size:13px;color:#94a3b8">Precisa de ajuda? Responda este email. — Equipe INFIZAP</p>
+      <p style="font-size:13px;color:#94a3b8">${t.help} ${t.team}</p>
     </div>
   </div>`;
 
   const text =
-    `Olá, ${firstName}!\n\n` +
-    `Seu pagamento do ${planLabel || "plano INFIZAP"} foi aprovado e sua conta está pronta.\n\n` +
-    `Acesso: ${loginUrl}\nEmail: ${email}\nSenha temporária: ${password}\n\n` +
-    `Troque a senha no primeiro acesso. Se esquecer, use "Esqueci minha senha" no login.\n\n— Equipe INFIZAP`;
+    `${t.hi}, ${firstName}!\n\n` +
+    `${t.textIntro(planLabel || "INFIZAP")}\n\n` +
+    `${t.access}: ${loginUrl}\n${t.emailLabel}: ${email}\n${t.tempPass}: ${password}\n\n` +
+    `${t.textSecurity}\n\n${t.team}`;
 
   await transporter.sendMail({
     from,
     to: email,
-    subject: "Bem-vindo ao INFIZAP — seu acesso está pronto 🎉",
+    subject: t.subject,
     text,
     html,
   });
