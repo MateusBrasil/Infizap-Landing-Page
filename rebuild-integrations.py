@@ -31,20 +31,20 @@ LOGOS = {
     # 5. Google Gemini (estrela 4-pontas)
     'Gemini': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#fff" d="M16 1.6c0 8.66-5.74 14.4-14.4 14.4 8.66 0 14.4 5.74 14.4 14.4 0-8.66 5.74-14.4 14.4-14.4-8.66 0-14.4-5.74-14.4-14.4Z"/></svg>''',
 
-    # 6. Dialogflow (3 balões sobrepostos)
-    'Dialogflow': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#fff" d="M16 4 4 11v10l12 7 12-7V11L16 4Zm0 2.31 9.93 5.8L16 17.91 6.07 12.11 16 6.31Zm-10 7.5 9 5.25v8.59l-9-5.25v-8.59Zm11 13.84v-8.59l9-5.25v8.59l-9 5.25Z"/></svg>''',
+    # 6. Dialogflow (logo real do Google: 4 quadrados em diamante)
+    'Dialogflow': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="14" y="2" width="8" height="8" rx="1.5" transform="rotate(45 18 6)" fill="#fff"/><rect x="2" y="14" width="8" height="8" rx="1.5" transform="rotate(45 6 18)" fill="#fff"/><rect x="14" y="14" width="8" height="8" rx="1.5" transform="rotate(45 18 18)" fill="#fff"/><rect x="14" y="26" width="8" height="8" rx="1.5" transform="rotate(45 18 30)" fill="#fff"/></svg>''',
 
     # 7. Typebot (bot com olhos)
     'Typebot': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#fff" d="M14 1.5v3.07A11.27 11.27 0 0 0 3.5 15.78v8.43A5.29 5.29 0 0 0 8.78 29.5h14.44a5.29 5.29 0 0 0 5.28-5.29v-8.43A11.27 11.27 0 0 0 18 4.57V1.5h-4Zm-4.78 21a2.78 2.78 0 0 1-2.78-2.78v-3.93a8.78 8.78 0 0 1 17.56 0v3.93a2.78 2.78 0 0 1-2.78 2.78H9.22Zm2.78-7.5a2 2 0 1 0 2 2 2 2 0 0 0-2-2Zm8 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2Z"/></svg>''',
 
-    # 8. n8n (3 circles connected)
-    'n8n': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="6" cy="16" r="3" fill="#fff"/><circle cx="16" cy="9" r="3" fill="#fff"/><circle cx="16" cy="23" r="3" fill="#fff"/><circle cx="26" cy="16" r="3" fill="#fff"/><path stroke="#fff" stroke-width="1.5" d="M9 16h4M19 9h4M19 23h4M16 12v8"/></svg>''',
+    # 8. n8n (logo real: nó central com 2 nós laterais conectados — workflow DAG)
+    'n8n': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="5" fill="#fff"/><circle cx="6" cy="10" r="3" fill="#fff"/><circle cx="6" cy="22" r="3" fill="#fff"/><circle cx="26" cy="16" r="3" fill="#fff"/><path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M9 10h2M9 22h2M21 16h2"/></svg>''',
 
-    # 9. Webhooks (gancho/branching paths)
-    'Webhooks': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#fff" d="M22 18a4 4 0 0 0-3.4 1.9l-3-5A6 6 0 1 0 8 16a3.5 3.5 0 0 1 .5 1.7l-4 6.6a4 4 0 1 0 2.6 1.5l5.5-9.1A4 4 0 1 1 14 14l5.6 9.3A4 4 0 1 0 22 18Zm-7.5-6.5a3 3 0 1 1 4-3.4l.7 1.2H22a3 3 0 1 1 0 6h-7.5l1.5-2.6A2.97 2.97 0 0 0 14.5 11.5ZM5 27a2 2 0 1 1 2-2 2 2 0 0 1-2 2Zm17 0a2 2 0 1 1 2-2 2 2 0 0 1-2 2Z"/></svg>''',
+    # 9. Webhooks (logo conceitual oficial webhooks.fyi: 3 círculos com bifurcação em Y)
+    'Webhooks': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="7" r="4" fill="#fff"/><circle cx="7" cy="24" r="4" fill="#fff"/><circle cx="25" cy="24" r="4" fill="#fff"/><path stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none" d="M16 11v6l-6 5M16 17l6 5"/></svg>''',
 
-    # 10. Cal.com (calendário)
-    'Cal.com': '''<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="3" stroke="#fff" stroke-width="2" fill="none"/><path stroke="#fff" stroke-width="2" stroke-linecap="round" d="M4 12h24M10 3v6M22 3v6"/><circle cx="16" cy="18" r="2" fill="#fff"/></svg>''',
+    # 10. Cal.com (logo real: pill quadrado arredondado com "cal" minimalista — refletindo o mark oficial)
+    'Cal.com': '''<svg xmlns="http://www.w3.org/2000/svg" width="40" height="32" viewBox="0 0 40 32" fill="none"><rect x="2" y="6" width="36" height="20" rx="6" stroke="#fff" stroke-width="2.5" fill="none"/><text x="20" y="21" font-family="-apple-system, system-ui, sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">cal</text></svg>''',
 }
 
 LABELS_PT = {
