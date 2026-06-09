@@ -46,7 +46,8 @@ const PLAN_BY_AMOUNT = {
   "eur:9700":   { label: "Pro Mensal",      planId: 5, recurrence: "MENSAL" },
   "eur:97000":  { label: "Pro Anual",       planId: 8, recurrence: "ANUAL"  },
   "eur:19700":  { label: "Business Mensal", planId: 6, recurrence: "MENSAL" },
-  "eur:197000": { label: "Business Anual",  planId: 9, recurrence: "ANUAL"  },
+  "eur:147000": { label: "Business Anual",  planId: 9, recurrence: "ANUAL"  }, // novo preco €1470
+  "eur:197000": { label: "Business Anual (preco antigo)", planId: 9, recurrence: "ANUAL" }, // alias seguranca
 };
 
 // (Opcional, mais robusto) Se um dia usar CUPONS de desconto, o valor pago muda
