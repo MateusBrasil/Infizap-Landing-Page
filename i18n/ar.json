@@ -429,5 +429,14 @@
   "Agente de IA": "وكيل الذكاء الاصطناعي",
   "Ligação por WhatsApp · gravação": "مكالمات واتساب · تسجيل",
   "Instagram + Facebook": "إنستجرام + فيسبوك",
-  "INCLUÍDA": "مشمولة"
+  "INCLUÍDA": "مشمولة",
+  "WhatsApp Oficial": "واتساب الرسمي",
+  "Facebook Messenger": "ماسنجر فيسبوك",
+  "OpenAI / ChatGPT": "OpenAI / ChatGPT",
+  "Google Gemini": "Google Gemini",
+  "Google Dialogflow": "Google Dialogflow",
+  "Typebot": "Typebot",
+  "n8n": "n8n",
+  "Webhooks": "Webhooks",
+  "Cal.com": "Cal.com"
 }

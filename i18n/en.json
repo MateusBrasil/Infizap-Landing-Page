@@ -429,5 +429,14 @@
   "Agente de IA": "AI Agent",
   "Ligação por WhatsApp · gravação": "WhatsApp calling · recording",
   "Instagram + Facebook": "Instagram + Facebook",
-  "INCLUÍDA": "INCLUDED"
+  "INCLUÍDA": "INCLUDED",
+  "WhatsApp Oficial": "WhatsApp Official",
+  "Facebook Messenger": "Facebook Messenger",
+  "OpenAI / ChatGPT": "OpenAI / ChatGPT",
+  "Google Gemini": "Google Gemini",
+  "Google Dialogflow": "Google Dialogflow",
+  "Typebot": "Typebot",
+  "n8n": "n8n",
+  "Webhooks": "Webhooks",
+  "Cal.com": "Cal.com"
 }
