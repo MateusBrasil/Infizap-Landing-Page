@@ -56,17 +56,45 @@ def main():
         print(f"[ok] Pixel {PIXEL_ID} injetado.")
 
     # 2) Neutraliza pixel antigo herdado do GTM do mirror.
-    #    O ID aparece em vários contextos (constantes JSON, snippets HTML do
-    #    Custom HTML Tag, URLs de noscript img). Substituir o numero literal
-    #    por "0" funciona em todos: fbq('init','0') é rejeitado pela Meta,
-    #    URL tr?id=0 idem. Mantem o GTM funcional pra outras tags.
+    #    Passo A: trocar o ID literal por "0" nas constantes do GTM.
+    #    Passo B: esvaziar o vtp_html das Custom HTML Tags do GTM que injetam
+    #    o snippet completo do pixel (init+track+noscript). Sem isso, mesmo
+    #    com ID=0 o Pixel Helper ainda detecta a chamada fbq('init','0').
+    import re
+
     occurrences = html.count(OLD_PIXEL_ID)
     if occurrences > 0:
         html = html.replace(OLD_PIXEL_ID, "0")
         changed = True
-        print(f"[ok] Pixel antigo {OLD_PIXEL_ID} neutralizado em {occurrences} ocorrência(s).")
+        print(f"[ok] ID antigo {OLD_PIXEL_ID} → 0 em {occurrences} ocorrência(s).")
+
+    # Esvazia qualquer vtp_html que carregue fbevents.js (snippets do pixel).
+    # Padrão de string JSON: (?:[^"\\]|\\.)*? — non-greedy, respeita escapes.
+    pat = re.compile(r'"vtp_html":"((?:[^"\\]|\\.)*?fbevents\.js(?:[^"\\]|\\.)*?)"')
+    n_html = 0
+    def _replace(m):
+        nonlocal n_html
+        n_html += 1
+        return '"vtp_html":""'
+    html = pat.sub(_replace, html)
+    if n_html > 0:
+        changed = True
+        print(f"[ok] vtp_html do pixel esvaziado em {n_html} tag(s) do GTM.")
+
+    # Passo C: desabilita o <script> que carrega o GTM container inteiro.
+    # O GTM tem templates internos (__cvt_*) que injetam fbevents.js via JS —
+    # esvaziar vtp_html nao basta. Mudar o type pra text/plain faz o browser
+    # ignorar o script. Idempotente: so age se ainda não tem o marcador.
+    gtm_old = '<script async="" data-umb2-entry-src="https://www.googletagmanager.com/gtm.js?id=GTM-T54P7M6Q">'
+    gtm_new = '<script async="" data-umb2-entry-src="https://www.googletagmanager.com/gtm.js?id=GTM-T54P7M6Q" type="text/plain" data-disabled-by="infizap-lp">'
+    if gtm_old in html:
+        html = html.replace(gtm_old, gtm_new, 1)
+        changed = True
+        print(f"[ok] Script GTM-T54P7M6Q desabilitado (type=text/plain).")
+    elif gtm_new in html:
+        print(f"[ok] Script GTM-T54P7M6Q já estava desabilitado.")
     else:
-        print(f"[ok] Pixel antigo {OLD_PIXEL_ID} já estava neutralizado.")
+        print(f"[!] Padrão do <script> GTM não encontrado — pode ter mudado de forma.")
 
     if not changed:
         print("[ok] Nada a fazer.")
