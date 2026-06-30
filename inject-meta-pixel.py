@@ -81,10 +81,7 @@ def main():
         changed = True
         print(f"[ok] vtp_html do pixel esvaziado em {n_html} tag(s) do GTM.")
 
-    # Passo C: desabilita o <script> que carrega o GTM container inteiro.
-    # O GTM tem templates internos (__cvt_*) que injetam fbevents.js via JS —
-    # esvaziar vtp_html nao basta. Mudar o type pra text/plain faz o browser
-    # ignorar o script. Idempotente: so age se ainda não tem o marcador.
+    # Passo C: desabilita o <script> wrapper que carrega o GTM container.
     gtm_old = '<script async="" data-umb2-entry-src="https://www.googletagmanager.com/gtm.js?id=GTM-T54P7M6Q">'
     gtm_new = '<script async="" data-umb2-entry-src="https://www.googletagmanager.com/gtm.js?id=GTM-T54P7M6Q" type="text/plain" data-disabled-by="infizap-lp">'
     if gtm_old in html:
@@ -93,8 +90,33 @@ def main():
         print(f"[ok] Script GTM-T54P7M6Q desabilitado (type=text/plain).")
     elif gtm_new in html:
         print(f"[ok] Script GTM-T54P7M6Q já estava desabilitado.")
+
+    # Passo D: O interceptor Umbrella tem um MAP com o conteudo do gtm.js
+    # armazenado em base64 (~545 KB com 7 refs ao pixel antigo). O interceptor
+    # pode executar esse JS independente do <script> wrapper. Aqui esvaziamos
+    # essa entrada — base64 de "" e vazio.
+    import base64
+    inert_b64 = base64.b64encode(b"/* GTM-T54P7M6Q neutralizado pela infizap LP */").decode("ascii")
+    map_pat = re.compile(
+        r'("https://www\.googletagmanager\.com/gtm\.js\?id=GTM-T54P7M6Q":"data:application/javascript;base64,)([A-Za-z0-9+/=]+)"'
+    )
+    n_map = 0
+    def _map_replace(m):
+        nonlocal n_map
+        n_map += 1
+        # so substitui se ainda nao foi neutralizado
+        if m.group(2) == inert_b64:
+            return m.group(0)
+        return f'{m.group(1)}{inert_b64}"'
+    new_html = map_pat.sub(_map_replace, html)
+    if n_map > 0 and new_html != html:
+        html = new_html
+        changed = True
+        print(f"[ok] MAP do interceptor: GTM neutralizado ({n_map} entrada).")
+    elif n_map > 0:
+        print(f"[ok] MAP do interceptor: GTM já neutralizado.")
     else:
-        print(f"[!] Padrão do <script> GTM não encontrado — pode ter mudado de forma.")
+        print(f"[!] Entrada do MAP do GTM não encontrada — interceptor mudou?")
 
     if not changed:
         print("[ok] Nada a fazer.")
