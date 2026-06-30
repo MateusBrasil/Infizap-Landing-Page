@@ -192,6 +192,90 @@ async function provisionFromSession(session) {
   } catch (e) {
     console.error("[infizap] falha ao enviar email de boas-vindas:", e && e.message);
   }
+
+  // 8) Conversion API da Meta (server-side) — dispara Purchase com valor real.
+  //    Server-side = nao sofre adblock/ITP. NUNCA derruba a criacao da empresa.
+  try {
+    await sendMetaPurchase({ session, email, phone, name, planLabel: mapped.label });
+  } catch (e) {
+    console.error("[infizap] falha CAPI Meta:", e && e.message);
+  }
+}
+
+// ───────────────────────── META CONVERSION API ─────────────────────────
+// Envia evento Purchase pra Meta server-side. Deduplicado com o pixel do
+// front via event_id (a thank-you so dispara Lead/PageView, entao nao ha
+// risco real de duplicar). Configurar na Vercel:
+//   META_PIXEL_ID            = 1754764649012594
+//   META_PIXEL_ACCESS_TOKEN  = (token longo gerado no Events Manager)
+//   META_TEST_EVENT_CODE     = opcional, so pra ver no "Test Events"
+const crypto = require("crypto");
+
+function sha256Lower(v) {
+  if (!v) return undefined;
+  return crypto.createHash("sha256").update(String(v).trim().toLowerCase()).digest("hex");
+}
+
+async function sendMetaPurchase({ session, email, phone, name, planLabel }) {
+  const pixelId = process.env.META_PIXEL_ID;
+  const accessToken = process.env.META_PIXEL_ACCESS_TOKEN;
+  if (!pixelId || !accessToken) {
+    console.log("[infizap] CAPI Meta desativada (defina META_PIXEL_ID e META_PIXEL_ACCESS_TOKEN)");
+    return;
+  }
+
+  // Stripe usa centavos; Meta espera valor decimal.
+  const value = (session.amount_total || 0) / 100;
+  const currency = (session.currency || "eur").toUpperCase();
+
+  const firstName = (name || "").split(" ")[0] || undefined;
+  const lastName = (name || "").split(" ").slice(1).join(" ") || undefined;
+  // Telefone: tira tudo que nao for digito antes do hash.
+  const phoneDigits = phone ? String(phone).replace(/\D+/g, "") : undefined;
+
+  // event_id estavel = mesmo evento se a Stripe reenviar o webhook (idempotencia).
+  const eventId = `purchase_${session.id}`;
+
+  const payload = {
+    data: [
+      {
+        event_name: "Purchase",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        action_source: "website",
+        event_source_url: process.env.LANDING_URL || "https://infizap.com/",
+        user_data: {
+          em: email ? [sha256Lower(email)] : undefined,
+          ph: phoneDigits ? [sha256Lower(phoneDigits)] : undefined,
+          fn: firstName ? [sha256Lower(firstName)] : undefined,
+          ln: lastName ? [sha256Lower(lastName)] : undefined,
+        },
+        custom_data: {
+          currency,
+          value,
+          content_name: planLabel,
+          content_category: "subscription",
+          content_ids: [planLabel],
+          content_type: "product",
+        },
+      },
+    ],
+  };
+  if (process.env.META_TEST_EVENT_CODE) {
+    payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+  }
+
+  const url = `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const body = await res.text();
+  if (!res.ok) {
+    throw new Error(`CAPI Meta falhou (${res.status}): ${body.slice(0, 300)}`);
+  }
+  console.log(`[infizap] CAPI Meta Purchase enviado: ${currency} ${value} (event_id=${eventId})`);
 }
 
 // ───────────────────────── EMAIL DE BOAS-VINDAS ─────────────────────────
