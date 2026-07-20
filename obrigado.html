@@ -331,15 +331,17 @@ footer a:hover{color:var(--primary)}
 
   // ───────────────────────────────────────────────────────────────
   // VSL via YouTube IFrame API — player SEM barra de progresso
-  // (não dá pra pular pro final), detecta o fim de verdade e só aí
-  // libera o bônus da call.
+  // (não dá pra pular pro final). O bônus da call é liberado assim
+  // que o vídeo passa de 2:05 (o ponto onde ele é anunciado na fala).
   // ───────────────────────────────────────────────────────────────
   var YT_VIDEO_ID = 'v6cfqBZtRxY';
+  var BONUS_UNLOCK_SECONDS = 125; // 2:05
   var placeholder = document.getElementById('video-placeholder');
   var guard = document.getElementById('video-guard');
   var bonus = document.getElementById('bonus-call');
   var player = null;
   var bonusRevealed = false;
+  var bonusCheckInterval = null;
 
   function revealBonus(){
     if (bonusRevealed || !bonus) return;
@@ -347,6 +349,17 @@ footer a:hover{color:var(--primary)}
     bonus.classList.add('reveal');
     bonus.setAttribute('aria-hidden', 'false');
     setTimeout(function(){ bonus.scrollIntoView({behavior:'smooth', block:'center'}); }, 250);
+    if (bonusCheckInterval) { clearInterval(bonusCheckInterval); bonusCheckInterval = null; }
+  }
+
+  function startBonusWatcher(){
+    if (bonusRevealed || bonusCheckInterval) return;
+    bonusCheckInterval = setInterval(function(){
+      if (!player || typeof player.getCurrentTime !== 'function') return;
+      try {
+        if (player.getCurrentTime() >= BONUS_UNLOCK_SECONDS) revealBonus();
+      } catch(e){}
+    }, 1000);
   }
 
   // Carrega a IFrame API do YouTube
@@ -372,7 +385,10 @@ footer a:hover{color:var(--primary)}
         },
         onStateChange: function(e){
           // Ativa a camada de proteção assim que o vídeo começa a rodar
-          if (e.data === YT.PlayerState.PLAYING && guard) guard.classList.add('active');
+          if (e.data === YT.PlayerState.PLAYING) {
+            if (guard) guard.classList.add('active');
+            startBonusWatcher();
+          }
           if (e.data === YT.PlayerState.ENDED) revealBonus();
         }
       }
