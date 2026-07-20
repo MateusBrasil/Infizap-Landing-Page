@@ -71,8 +71,11 @@ h1 .accent{background:linear-gradient(135deg,hsl(173,76%,55%),hsl(173,76%,38%));
 .sub{max-width:640px;margin:0 auto 40px;text-align:center;color:var(--muted);font-size:clamp(15px,2vw,17px);line-height:1.55}
 .sub strong{color:#fff;font-weight:600}
 .video-wrap{position:relative;max-width:760px;margin:0 auto 12px;border-radius:24px;overflow:hidden;background:#000;aspect-ratio:16/9;border:1px solid var(--border);box-shadow:var(--shadow)}
-.video-wrap video{width:100%;height:100%;display:block;object-fit:cover}
-.video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0d14,#0E1118);text-align:center;padding:20px;cursor:pointer;transition:opacity .3s ease}
+.video-wrap video,.video-wrap iframe,.video-wrap #yt-player{position:absolute;inset:0;width:100%;height:100%;display:block;border:0;object-fit:cover}
+/* Camada que intercepta cliques no chrome do YouTube (logo/compartilhar/título) e dá play/pause próprio */
+.video-guard{position:absolute;inset:0;z-index:1;cursor:pointer;display:none;background:transparent}
+.video-guard.active{display:block}
+.video-placeholder{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0d14,#0E1118);text-align:center;padding:20px;cursor:pointer;transition:opacity .3s ease}
 .video-placeholder.hidden{opacity:0;pointer-events:none}
 .video-placeholder .play{width:84px;height:84px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 0 0 12px hsl(173,76%,48%,.15),0 0 40px hsl(173,76%,48%,.5);transition:transform .2s ease}
 .video-placeholder:hover .play{transform:scale(1.05)}
@@ -90,6 +93,20 @@ h1 .accent{background:linear-gradient(135deg,hsl(173,76%,55%),hsl(173,76%,38%));
 .cta-pulse{position:relative}
 .cta-pulse::after{content:'';position:absolute;inset:0;border-radius:999px;border:2px solid var(--primary);opacity:.5;animation:cta-pulse 2.5s ease-out infinite;pointer-events:none}
 @keyframes cta-pulse{0%{transform:scale(1);opacity:.5}80%{transform:scale(1.18);opacity:0}100%{transform:scale(1.18);opacity:0}}
+/* ── Bônus da call: escondido até o vídeo terminar ── */
+.bonus{max-width:760px;margin:0 auto 56px;border-radius:24px;padding:2px;background:linear-gradient(135deg,hsl(173,76%,55%),hsl(173,76%,32%));box-shadow:0 24px 80px -32px hsl(173,76%,48%,.5);display:none}
+.bonus.reveal{display:block;animation:bonus-in .7s cubic-bezier(.16,1,.3,1) both}
+@keyframes bonus-in{0%{opacity:0;transform:translateY(24px) scale(.98)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.bonus-inner{background:linear-gradient(135deg,#0b0f16,#0E1118);border-radius:22px;padding:40px 32px;text-align:center;position:relative;overflow:hidden}
+.bonus-inner::before{content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:120%;height:80%;background:radial-gradient(50% 50% at 50% 50%,hsl(173,76%,48%,.14),transparent 70%);pointer-events:none}
+.bonus-badge{position:relative;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid hsl(173,76%,48%,.35);border-radius:999px;background:hsl(173,76%,48%,.06);color:var(--primary);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:18px}
+.bonus-badge svg{width:14px;height:14px}
+.bonus h2{position:relative;font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:14px}
+.bonus h2 .accent{background:linear-gradient(135deg,hsl(173,76%,55%),hsl(173,76%,38%));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bonus p{position:relative;max-width:520px;margin:0 auto 28px;color:var(--muted);font-size:clamp(15px,2vw,17px);line-height:1.55}
+.bonus p strong{color:#fff;font-weight:600}
+.bonus .cta{font-size:18px;padding:20px 40px}
+.bonus-note{position:relative;margin-top:16px;color:var(--muted-2);font-size:13px}
 .cards{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:48px}
 @media(min-width:720px){.cards{grid-template-columns:repeat(3,1fr)}}
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;transition:border-color .2s,transform .2s}
@@ -150,21 +167,19 @@ footer a:hover{color:var(--primary)}
     </p>
 
     <div class="video-wrap">
-      <video id="thank-you-video" controls preload="metadata" playsinline>
-        <source src="" type="video/mp4">
-        <!-- TODO: substituir src pelo arquivo .mp4 do vídeo do dono -->
-      </video>
+      <div id="yt-player"></div>
+      <div class="video-guard" id="video-guard" aria-hidden="true"></div>
       <div class="video-placeholder" id="video-placeholder">
         <div class="play" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z"/>
           </svg>
         </div>
-        <div class="title">Mensagem do fundador — 3 min</div>
-        <div class="sub-line">Assista antes de qualquer coisa.</div>
+        <div class="title">Mensagem do fundador. Assista até o final</div>
+        <div class="sub-line">Tem um bônus liberado só pra quem assistir inteiro.</div>
       </div>
     </div>
-    <p class="video-caption">↑ É o atalho mais rápido pros primeiros R$ 10 mil em vendas dentro da plataforma.</p>
+    <p class="video-caption">↑ Assista até o final. No fim tem um presente pra você.</p>
 
     <div class="cta-wrap">
       <a href="#" id="access-platform-btn" class="cta cta-pulse" data-pending="true">
@@ -175,6 +190,31 @@ footer a:hover{color:var(--primary)}
         </svg>
       </a>
     </div>
+
+    <!-- Bônus revelado só quando o vídeo termina -->
+    <section class="bonus" id="bonus-call" aria-hidden="true">
+      <div class="bonus-inner">
+        <span class="bonus-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Bônus desbloqueado</span>
+        </span>
+        <h2>Você chegou até o final.<br><span class="accent">Sua call de direcionamento está liberada.</span></h2>
+        <p>
+          Como prometido, você ganhou uma <strong>call de 30 minutos comigo e com a minha equipe</strong>
+          pra montar o seu direcionamento, o passo a passo pra você tirar o máximo do INFIZAP.
+          <strong>Agenda o melhor horário agora:</strong>
+        </p>
+        <div class="cta-wrap" style="margin-bottom:0">
+          <a href="https://calendly.com/geral-infizap/30min" id="book-call-btn" class="cta cta-pulse" target="_blank" rel="noopener">
+            <span>Agendar minha call de 30 min</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </a>
+        </div>
+        <p class="bonus-note">Vagas limitadas na agenda da equipe. Garanta a sua enquanto está aberto.</p>
+      </div>
+    </section>
 
     <div class="cards">
       <div class="card">
@@ -251,7 +291,10 @@ footer a:hover{color:var(--primary)}
         if (/^https?:\/\/(?:checkout\.|buy\.|pay\.)?stripe\.com\//i.test(ref)) fromStripe = true;
       } catch(_){}
 
-      if (!sessionId && !hasRecentLead && !fromStripe) {
+      // TEST-ONLY bypass: ?test_bypass=true pula o portão (remover depois dos testes)
+      var bypass = params.get('test_bypass') === 'true';
+
+      if (!sessionId && !hasRecentLead && !fromStripe && !bypass) {
         // No proof of either a paid Stripe session OR an active LP funnel —
         // send back to pricing instead of rendering the thank-you UI.
         window.location.replace('https://infizap-landing-page.vercel.app/#pricing');
@@ -286,26 +329,72 @@ footer a:hover{color:var(--primary)}
     btn.target = '_self';
   }
 
-  // Video placeholder click → start playback
+  // ───────────────────────────────────────────────────────────────
+  // VSL via YouTube IFrame API — player SEM barra de progresso
+  // (não dá pra pular pro final), detecta o fim de verdade e só aí
+  // libera o bônus da call.
+  // ───────────────────────────────────────────────────────────────
+  var YT_VIDEO_ID = 'v6cfqBZtRxY';
   var placeholder = document.getElementById('video-placeholder');
-  var video = document.getElementById('thank-you-video');
-  if (placeholder && video) {
-    placeholder.addEventListener('click', function(){
-      if (!video.querySelector('source').src) {
-        // No video file yet — animate the placeholder to acknowledge click
-        placeholder.style.transition = 'transform .15s ease';
-        placeholder.style.transform = 'scale(.98)';
-        setTimeout(function(){ placeholder.style.transform = 'scale(1)'; }, 150);
-        return;
-      }
-      placeholder.classList.add('hidden');
-      try { video.play(); } catch(e){}
-    });
+  var guard = document.getElementById('video-guard');
+  var bonus = document.getElementById('bonus-call');
+  var player = null;
+  var bonusRevealed = false;
 
-    // When video ends, scroll to CTA and pulse it
-    video.addEventListener('ended', function(){
-      btn && btn.scrollIntoView({behavior:'smooth', block:'center'});
-      btn && btn.classList.add('cta-pulse');
+  function revealBonus(){
+    if (bonusRevealed || !bonus) return;
+    bonusRevealed = true;
+    bonus.classList.add('reveal');
+    bonus.setAttribute('aria-hidden', 'false');
+    setTimeout(function(){ bonus.scrollIntoView({behavior:'smooth', block:'center'}); }, 250);
+  }
+
+  // Carrega a IFrame API do YouTube
+  var tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+
+  window.onYouTubeIframeAPIReady = function(){
+    player = new YT.Player('yt-player', {
+      videoId: YT_VIDEO_ID,
+      playerVars: {
+        controls: 0,        // sem barra de controles → sem pular
+        disablekb: 1,       // sem atalhos de teclado (seta = avançar)
+        modestbranding: 1,  // esconde logo do YouTube
+        rel: 0,             // sem vídeos relacionados de outros canais
+        fs: 0,              // sem botão de tela cheia
+        playsinline: 1,
+        iv_load_policy: 3   // sem anotações
+      },
+      events: {
+        onReady: function(){
+          if (placeholder) placeholder.classList.remove('hidden');
+        },
+        onStateChange: function(e){
+          // Ativa a camada de proteção assim que o vídeo começa a rodar
+          if (e.data === YT.PlayerState.PLAYING && guard) guard.classList.add('active');
+          if (e.data === YT.PlayerState.ENDED) revealBonus();
+        }
+      }
+    });
+  };
+
+  // Clique no placeholder → inicia a VSL
+  if (placeholder) {
+    placeholder.addEventListener('click', function(){
+      if (!player || typeof player.playVideo !== 'function') return;
+      placeholder.classList.add('hidden');
+      try { player.playVideo(); } catch(e){}
+    });
+  }
+
+  // Camada de proteção: cliques no vídeo dão play/pause (não vazam pro chrome do YouTube)
+  if (guard) {
+    guard.addEventListener('click', function(){
+      if (!player || typeof player.getPlayerState !== 'function') return;
+      try {
+        player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo();
+      } catch(e){}
     });
   }
 
