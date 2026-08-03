@@ -297,7 +297,7 @@ footer a:hover{color:var(--primary)}
       if (!sessionId && !hasRecentLead && !fromStripe && !bypass) {
         // No proof of either a paid Stripe session OR an active LP funnel —
         // send back to pricing instead of rendering the thank-you UI.
-        window.location.replace('https://infizap-landing-page.vercel.app/#pricing');
+        window.location.replace('https://infizap.com/#pricing');
         return;
       }
     } catch(_){}
@@ -307,7 +307,7 @@ footer a:hover{color:var(--primary)}
   // TODO: Substituir pelos links reais que vão ser enviados:
   // 1. PLATFORM_URL = a URL principal do INFIZAP (onde o usuário faz login)
   // ───────────────────────────────────────────────────────────────
-  var PLATFORM_URL = 'https://infizap.com'; // <-- TROCAR pelo URL real do dashboard
+  var PLATFORM_URL = 'https://app.infizap.com/login'; // URL do dashboard (ferramenta) -- infizap.com agora e' a landing
 
   // Personalize with stored data from the LP modal submission
   try {
