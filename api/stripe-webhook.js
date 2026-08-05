@@ -32,29 +32,53 @@ const API_BASE = process.env.INFIZAP_API_BASE || "https://appbk.infizap.com";
 // do navegador (logado no painel):
 //   fetch("https://appbk.infizap.com/plans/list",{headers:{Authorization:"Bearer "+JSON.parse(localStorage.getItem("token"))}}).then(r=>r.json()).then(console.table)
 //
-// Referencia dos Payment Links (so pra conferencia; o webhook usa o valor):
-//   Start Mensal     47,00  -> buy.stripe.com/6oU28q7nrcx61AjfzK9R60w
-//   Start Anual     470,00  -> buy.stripe.com/3cI8wOdLP8gQ92Lcny9R60z
-//   Pro Mensal       97,00  -> buy.stripe.com/4gM4gy8rv7cM4Mvcny9R60x
-//   Pro Anual       970,00  -> buy.stripe.com/dRm4gygY18gQ0wf1IU9R60A
-//   Business Mensal 197,00  -> buy.stripe.com/aFa8wO7nr9kU3Ir9bm9R60y
-//   Business Anual 1970,00  -> buy.stripe.com/cNi5kCbDHdBaceX5Za9R60B
+// ATENCAO (05/08/2026): a tabela de precos mudou para 17/27/47 (mensal) e
+// 170/270/470 (anual). Isso criou COLISAO com os precos antigos:
+//   - 47,00  era Start Mensal  -> agora e Business Mensal
+//   - 470,00 era Start Anual   -> agora e Business Anual
+// Por isso o roteamento por VALOR deixou de ser confiavel sozinho. A fonte de
+// verdade passou a ser o PRICE ID (PLAN_BY_PRICE abaixo), que e unico por
+// preco e nunca colide. O mapa por valor ficou so como rede de seguranca.
 const PLAN_BY_AMOUNT = {
-  // Mensais (planId 4/5/6)        |  Anuais (planId 7/8/9)
-  "eur:4700":   { label: "Start Mensal",    planId: 4, recurrence: "MENSAL" },
-  "eur:47000":  { label: "Start Anual",     planId: 7, recurrence: "ANUAL"  },
-  "eur:9700":   { label: "Pro Mensal",      planId: 5, recurrence: "MENSAL" },
-  "eur:97000":  { label: "Pro Anual",       planId: 8, recurrence: "ANUAL"  },
-  "eur:19700":  { label: "Business Mensal", planId: 6, recurrence: "MENSAL" },
-  "eur:147000": { label: "Business Anual",  planId: 9, recurrence: "ANUAL"  }, // novo preco €1470
-  "eur:197000": { label: "Business Anual (preco antigo)", planId: 9, recurrence: "ANUAL" }, // alias seguranca
+  // Precos ATUAIS  —  mensais (planId 4/5/6) | anuais (planId 7/8/9)
+  "eur:1700":  { label: "Start Mensal",    planId: 4, recurrence: "MENSAL" },
+  "eur:17000": { label: "Start Anual",     planId: 7, recurrence: "ANUAL"  },
+  "eur:2700":  { label: "Pro Mensal",      planId: 5, recurrence: "MENSAL" },
+  "eur:27000": { label: "Pro Anual",       planId: 8, recurrence: "ANUAL"  },
+  "eur:4700":  { label: "Business Mensal", planId: 6, recurrence: "MENSAL" },
+  "eur:47000": { label: "Business Anual",  planId: 9, recurrence: "ANUAL"  },
+  // Precos ANTIGOS que nao colidem com os novos: mantidos pra nao quebrar
+  // reprocessamento de webhooks antigos (Resend no painel da Stripe).
+  "eur:9700":   { label: "Pro Mensal (preco antigo 97)",       planId: 5, recurrence: "MENSAL" },
+  "eur:97000":  { label: "Pro Anual (preco antigo 970)",       planId: 8, recurrence: "ANUAL"  },
+  "eur:19700":  { label: "Business Mensal (preco antigo 197)", planId: 6, recurrence: "MENSAL" },
+  "eur:147000": { label: "Business Anual (preco antigo 1470)", planId: 9, recurrence: "ANUAL"  },
+  "eur:197000": { label: "Business Anual (preco antigo 1970)", planId: 9, recurrence: "ANUAL"  },
 };
 
-// (Opcional, mais robusto) Se um dia usar CUPONS de desconto, o valor pago muda
-// e o mapa por valor erra. Nesse caso preencha aqui o mapa por Price ID
-// (Stripe > Produtos > plano > preco price_...). Tem prioridade quando casar.
+// FONTE DE VERDADE: Price ID -> plano. Tem prioridade sobre o valor, e imune
+// a colisao de preco, a imposto (VAT) e a cupom de desconto.
+// Pra listar/atualizar: Stripe > Produtos > plano > preco (price_...).
 const PLAN_BY_PRICE = {
-  // "price_xxx": { label: "Start Mensal", planId: 0, recurrence: "MENSAL" },
+  // ---- Precos ATUAIS (criados em 05/08/2026) ----
+  "price_1U110FCJt7VrWARKe869qGj2": { label: "Start Mensal",    planId: 4, recurrence: "MENSAL" }, // 17,00
+  "price_1U116nCJt7VrWARKZxz1zD3i": { label: "Start Anual",     planId: 7, recurrence: "ANUAL"  }, // 170,00
+  "price_1U111HCJt7VrWARKnZ0qbkq8": { label: "Pro Mensal",      planId: 5, recurrence: "MENSAL" }, // 27,00
+  "price_1U11A2CJt7VrWARKDinWYvak": { label: "Pro Anual",       planId: 8, recurrence: "ANUAL"  }, // 270,00
+  "price_1U112cCJt7VrWARKE2LnZj69": { label: "Business Mensal", planId: 6, recurrence: "MENSAL" }, // 47,00
+  "price_1U11BdCJt7VrWARK5FBK61e2": { label: "Business Anual",  planId: 9, recurrence: "ANUAL"  }, // 470,00
+
+  // ---- Precos ANTIGOS (links legados / reprocessamento) ----
+  "price_1Tg0tgCJt7VrWARKiubz6o2a": { label: "Start Mensal (antigo 47)",     planId: 4, recurrence: "MENSAL" },
+  "price_1TfMftCJt7VrWARKgXy0sTu2": { label: "Start Mensal (START INFIZAP)", planId: 4, recurrence: "MENSAL" },
+  "price_1Tg10ACJt7VrWARKSq3gYHAr": { label: "Start Anual (antigo 470)",     planId: 7, recurrence: "ANUAL"  },
+  "price_1Tg0uzCJt7VrWARKBzthog2l": { label: "Pro Mensal (antigo 97)",       planId: 5, recurrence: "MENSAL" },
+  "price_1Tg117CJt7VrWARK6pCEZc4U": { label: "Pro Anual (antigo 970)",       planId: 8, recurrence: "ANUAL"  },
+  "price_1Tg0vkCJt7VrWARKuIBuwxYl": { label: "Business Mensal (antigo 197)", planId: 6, recurrence: "MENSAL" },
+  "price_1Tom4jCJt7VrWARKZQpZkuzj": { label: "Business Mensal (personalizado 47)", planId: 6, recurrence: "MENSAL" },
+  "price_1TgOcWCJt7VrWARK7RJl1ZoB": { label: "Business Anual (antigo 1470)",  planId: 9, recurrence: "ANUAL"  },
+  "price_1TgOXqCJt7VrWARKqL36Ymbv": { label: "Business Anual (antigo 1470)",  planId: 9, recurrence: "ANUAL"  },
+  "price_1Tg12dCJt7VrWARK4IGiRsYu": { label: "Business Anual (antigo 1970)",  planId: 9, recurrence: "ANUAL"  },
 };
 
 function resolvePlan(session, li) {
@@ -145,7 +169,7 @@ async function provisionFromSession(session) {
   const mapped = resolvePlan(session, li);
   if (!mapped) {
     throw new Error(
-      `Plano nao reconhecido. currency=${session.currency} amount_total=${session.amount_total} priceId=${priceId}`
+      `Plano nao reconhecido. currency=${session.currency} amount_total=${session.amount_total} unitAmount=${li.unitAmount} priceId=${li.priceId}`
     );
   }
   if (!mapped.planId) {
