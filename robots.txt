@@ -3,4 +3,4 @@ Allow: /
 Disallow: /obrigado.html
 Disallow: /api/
 
-Sitemap: https://infizap.com/sitemap.xml
+Sitemap: https://www.infizap.com/sitemap.xml
